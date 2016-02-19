@@ -1,0 +1,403 @@
+\documentclass[journal,twoside,comsoc]{IEEEtran}
+%\documentstyle[twocolumn,twoside]{IEEEtran}
+\usepackage[T1]{fontenc}% optional T1 font encoding
+\usepackage{amsmath}
+\usepackage{mathtools}
+\interdisplaylinepenalty=2500
+\usepackage[cmintegrals]{newtxmath}
+\usepackage{bm} %This package provides a \bm{} to produce bold math symbols.
+%\usepackage{algorithmic}
+\usepackage{array}
+\usepackage[caption=false,font=footnotesize]{subfig}
+\hyphenation{op-tical net-works semi-conduc-tor}
+\usepackage{cite}
+\usepackage{graphicx}
+\usepackage{url}
+%\usepackage{caption}
+\usepackage{mathrsfs,amsmath}
+\usepackage{float}
+\usepackage[usenames, dvipsnames]{color}
+\usepackage{algorithmic}
+\usepackage[linesnumbered, ruled, norelsize, algoruled, boxed, lined]{algorithm2e}
+\captionsetup[algorithm]{font=footnotesize}
+
+\SetKwRepeat{Do}{do}{while}%
+%\makeatletter
+\newcommand{\removelatexerror}{\let\@latex@error\@gobble}
+\newcommand{\nosemic}{\renewcommand{\@endalgocfline}{\relax}}% Drop semi-colon ;
+\newcommand{\dosemic}{\renewcommand{\@endalgocfline}{\algocf@endline}}% Reinstate semi-colon ;
+\newcommand{\pushline}{\Indp}% Indent
+\newcommand{\popline}{\Indm\dosemic}% Undent
+\let\oldnl\nl% Store \nl in \oldnl
+\newcommand{\nonl}{\renewcommand{\nl}{\let\nl\oldnl}}% Remove line number for one line
+\makeatother
+\newcommand{\todo}[1]{\textcolor{red}{@TODO: #1}}
+\newcommand{\response}[1]{\textcolor{blue}{@RESPONSE: #1}}
+
+\begin{document}
+
+\title{SDN based IPTV Multicast}
+
+\author{Ahmed~Nasrallah, Akhilesh~Thyagaturu,
+        and~Martin~Reisslein,~\IEEEmembership{Fellow,~IEEE}% <-this % stops a space
+\thanks{A.~Nasrallah, A.~Thyagaturu, and M.~Reisslein are with the School of Electrical,
+	Computer, and  Energy Eng., Arizona State Univ., Tempe, AZ 85287-5706, USA
+	(e-mail: \{ahnasral, athyagat, reisslein\}@asu.edu).}}% <-this % stops a space
+
+\markboth{IEEE Transactions on Network and Service Management,
+	 Vol.~XX, No.~X, Month~2016} {Thyagaturu~\MakeLowercase{\textit{et al.}}: 
+	 SDN based Smart Gateways (Sm-GWs) for Multi-Operator Small Cell Network Management}
+
+\maketitle
+
+\begin{abstract}
+The abstract goes here.
+\end{abstract}
+
+\section{Introduction} 
+
+\subsection{Motivation}
+The expansion of the cellular industry in the recent past has presented a wide
+range of opportunities for technology development in the access networking domain.
+Cellular communication plays an important role in enabling
+emerging technologies for the Internet of Things (IoT),
+cloud/mobile computing, and big data.
+The IoT paradigm connects virtually every electronic device which
+supports network connectivity to the Internet grid.
+Connecting such a high magnitude of devices to the Internet
+creates opportunities for seamless network access so as to monitor and control
+devices remotely.
+However, balanced progress has to be made across the
+entire technology chain of cellular wireless communication as
+well as the access (backhaul) networks and
+the core networks in order to benefit from the presented opportunities.
+
+Emerging applications for
+mobile devices, such as artificial
+intelligence and virtual/augmented reality,
+require ultra-low latency and high data rates
+to offload the computationally intensive tasks at the mobile devices
+to the cloud \cite{Qixuan2015}.
+Although wireless technologies
+have offered various solutions \cite{ZukangShen2012}, such as
+carrier aggregation in LTE-Advanced,
+to support the advance applications, the
+wireless spectrum resources in the licensed bands are
+expensive and scarce.
+In contrast to having high aggregated spectrum bandwidth of
+to support the user requirements in a single cell,
+multiple \textit{small cells} can be created to coexist with
+neighboring cells while
+sharing the same spectrum resources.
+Small cells offer the
+potential solution to address the limitations of wireless
+protocols~\cite{Bjerke2011,Nakamura2013,Alsohaily2013,Wei2013, Mahmood2015}.
+However, small cells challenges include
+interference coordination~\cite{Cong2014},
+backhaul complexity \cite{Siddique2015,wan2015bac}, and increased network
+infrastructure cost~\cite{Mugume2015}.
+In this article we propose a solution to
+reduce the backhaul infrastructure cost and the complexity of access
+networks supporting small cells. As it is likely for small cell 
+infrastructures to be privately owned, we also provide a framework
+for SDN based multi-operator management of small cell infrastructures.
+
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=3.3in]{Fig1_SmGW.pdf}
+%	%\vspace{-1cm}
+%	\caption{Enterprise deployment of small cells.}
+%	\label{fig_enterprise}
+%\end{figure}
+
+\subsection{Scope of Research and Commercialization Aspects}
+
+Small cell networks are expected to be privatively owned~\cite{Limbach2013}.
+Therefore it is important
+to enable usage flexibility and the freedom of investment in the new
+network entities
+(for e.g., gateway, servers) and the network infrastructures
+(for e.g., switches, optical fiber)
+by the private owners of small cells. The proposed Smart-Gateways (Sm-GW)
+will enable the
+private owners of small cells to utilize the cellular gateways
+(S-GW, P-GW) based
+on different service level agreements (SLAs) across multiple operators
+through SDN and supporting virtualization. In Figure \ref{fig_enterprise}, we illustrate
+a possible small cell deployment scenario in an enterprise building.
+We refer to small cells as \textit{femto cells} in the context of LTE.
+Our proposed (Smart-Gateway) Sm-GW at the enterprise building
+will enable the sharing of the access network resources
+of multiple cellular operators by all the small cells in the building. 
+
+As the deployment of small cells grow rapidly,
+static allocations of the network resources in the backhaul entities
+for individual small cell would result in under-utilization of resources 
+due to the bursty traffic nature of modern applications.
+Although with the proposal of several advance techniques for the
+management of eNB resources~\cite{Shih-Fan2014,samdanis2016td, liu2015qos, alam2015towards, chen2015virtual},
+very little attention has been given
+to the consequences of small cell deployments on the gateways \cite{chuang2015resource}.
+In the present wireless network architectures, such as LTE,
+the main reasons for under-utilization are:
+1) static (or non-flexible) network
+resource assignments between an eNB and the gateway (S-GW, P-GW), and
+2) no coordination of traffic between the eNBs and their gateways.
+For the same reasons, it is also
+physically impossible to accommodate the additional
+eNBs on a particular gateway (S/P-GW) (for e.g., to increase the coverage area) even
+when the traffic originating at the connected eNBs are very low, i.e., due to port exhaustion at the gateway;
+a new gateway (S/P-GW) is required to
+accommodate the additional eNBs, resulting in high expenditures. 
+Our proposed Sm-GW however can accommodate
+the large number of eNBs by sharing
+network resources of operator core.
+However, persistent over-subscriptions of the eNBs at a single Sm-GW
+under high load situation can affect the user
+satisfaction. In order to overcome such over-subscriptions, 
+new Sm-GWs along with new connections to operator core (S-GWs).
+have to be installed. Nevertheless, for large
+numbers of small cell deployments, our proposed approach curtails the requirement of 
+infrastructure increase at the operators core (i.e, S/P-GW and MME for LTE).
+
+Typically, the aggregate service requirements of all the
+small cells within a building is much larger than the single
+connection service provided by the cellular operators, thus creating
+a bottleneck.  For instance, if 100 femto cells, each
+supporting 1~Gbps in the uplink are deployed in a building, two issues
+arise: 1) suppose one S-GW supports 16~connections, the 7~S-GWs are
+required, and 2) the aggregated traffic requirement from all the 7 S-GWs
+would result in 100~Gbps, causing a similar situation at the P-GW. We
+emphasize that the discussed requirements are for a single building and
+there could be several building belonging to same organization
+within a small geographical location.  We argue here that: 
+1) providing the 100~Gbps connectivity to every
+building would be very expensive, and 2) with sharing we can 
+reduce the resource requirement
+to, say, 1~Gbps, and 3) infrastructure increase of S/P-GW can
+be curtailed, reducing the cost for the cellular operators.
+
+\subsection{Overview of Proposed Solution}
+We present a new access networking framework 
+for supporting small cell
+deployments based on the sharing of network resources.
+We introduce a new network entity, the Smart GateWay (Sm-GW) 
+as shown
+in Figure~\ref{fig_enterprise} and \ref{fig_SMGW_overall}.
+The Sm-GW will
+flexibly accommodate the eNB connections at the gateway.
+We also introduce novel techniques for sharing the
+small cell infrastructures among multiple operators through virtualization
+and SDN based reconfiguration namely SDCI.
+The main techniques presented in this article are:
+\begin{enumerate}
+	\item A novel comprehensive Smart Gateway (Sm-GW) architectural
+	solution to accommodate a flexible number of eNBs with
+	heterogeneous radio access technologies (e.g., WiFi and LTE)
+	connections at the Sm-GW and reduce the requirements at
+	the S-GW and MME (operator's core), reducing the network cost.
+	The novel \mbox{Sm-GW} architecture also supports the virtualization of small cell
+	infrastructures using SDN.
+	\item A novel SDN based network optimization adaptive technique to maximize
+	the utilization of the available resources from 
+	the multiple operators with dynamically changing user requirements.
+\end{enumerate}
+
+\subsection{Related Work}
+Software defined infrastructure (SDI) \cite{lin2015monitoring, kang2013software,
+	 kang2014software, kandiraju2014software, lin2014enabling} enables the
+softwarization of networking, computing and storage in the data-centers. In
+contrast, our proposed method of SDCI enables the softwarization of 
+cellular infrastructures consisting of eNBs and Gateways for networking.
+
+Schedulers implemented through wireless networking protocols
+share the wireless resources at the eNB
+among all the connected user equipment (UE) nodes.
+For example, the LTE medium access control (MAC) protocol \cite{3gppLTEMAC}
+is responsible for
+scheduling the wireless resources between a single eNB
+and multiple UEs in LTE.
+Likewise to sharing of resources in the wireless protocols such as 
+the air-interface of LTE, we propose the network protocols
+to share the network resources between the Sm-GW
+gateway and the eNBs to dynamically allocate the
+network resources based on the requirements and 
+availability from the cellular operators. Schedulers for wireless resource sharing have
+been extensively researched.
+Proportional fair scheduling (PFS) of
+the bandwidth allocations in wireless networks~\cite{Erwu2008} can support
+high resource utilization while maintaining good fairness among
+the network flows.
+An algorithm to support quality of service (QoS) aware uplink scheduling and
+resource allocation at the small cell eNB in the LTE network has been
+examined in~\cite{Chaudhuri2015}.
+However, most studies to date have been
+limited to the sharing of the wireless resources.
+In contrast, we propose a novel protocol interaction mechanism between
+network protocols and the wireless
+scheduler within the eNBs, described in Section~\ref{prot:sec:eNB}.
+%\todo{which main thrust does this relate to?, refer to section}
+These protocol interactions can help avoid the extra wireless transmissions
+which may cause network congestion for other eNBs. Thus, best-effort
+(non-delay-sensitive, low-priority) data traffic originating at a device
+would not be granted with the wireless resources for the uplink transmissions
+based on network resource availability.
+
+Similar research, namely a mechanism for network sharing of resources
+among small cell base stations
+has been conducted in~\cite{Lakshminarayana2011,lak2013h}.
+Specifically, the
+H-infinity scheduler for limited capacity
+backhaul links in~\cite{Lakshminarayana2011} schedules the traffic
+in the downlink from a centralized scheduler
+focused on buffer size requirements at
+the base stations in the small cell networks.
+In contrast,
+we focus on the \textit{uplink} traffic from the eNBs to the Sm-GW.
+To the best of our knowledge, we propose the first
+network protocol scheduler for the uplink transmissions
+from the eNBs to the gateways in the context of LTE small cells.
+
+Other notable studies towards the resource allocation in the cellular networks are, 
+Destounis et al., in~\cite{des2014queue} which discusses
+the power allocation of the interfering neighboring base stations 
+based on the queue length for QoS provisioning.
+D2D resource allocation by negotiations for offloading of traffic to
+small cell networks has been studied in~\cite{sem2015con}, which 
+can be easily supported by our proposed Sm-GW.
+Coordinated scheduling algorithm  in the context of small cells
+with dynamic cell muting to mitigate the interference has been discussed in~\cite{wan2015dyn}, 
+cell muting technique can be further benefited from
+our approach of traffic scheduling to eNBs based on the requirements.
+The key benefits of SDN/NFV in reduced operational costs and flexibility with
+sotwarization and virtualization for 5G cellular networks has been extensively 
+discussed in~\cite{aky2015wir,ros2015ben}. However, the challenges of SDN/NFV include the
+wireless resource allocation and coordination. Furthermore, Gasparis et al. \cite{gas2015pro}
+has provided a flexible wireless resource allocation mechanism
+by introducing the programmability to the traffic flows
+using SDN which utilizes the property of
+simultaneous connections to multiple
+base stations on the devices in the dense small cell networks. 
+In contrast to the presented related work, 
+we propose the multi-operator resource allocation mechanism 
+in the context of limited backhaul link capacities 
+to each small cell base station in the dense networks using SDN.
+% Kozat may be with Huawei now.
+
+\subsection{Proposed SDCI based on Sm-GW}
+
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[height=2.0in]{SmGW_overall.pdf}
+%	%\vspace{-1cm}
+%	\caption{Proposed mechanism of Sm-GW coordinating 
+%		the communication between eNBs and 
+%		multiple operators using SDN}
+%	\label{fig_SMGW_overall}
+%\end{figure}
+
+We propose a novel paradigm Software Defined Cellular Infrastructure (SDCI), 
+a method of sharing cellular infrastructure between multiple operators supporting
+Software Defined Networking (SDN). In contrast to proposed cellSDN \cite{li2013cellsdn},
+software defined cellular networks \cite{li2012toward}, 
+software defined mobile networks \cite{pentikousis2013mobileflow} 
+and SoftRAN \cite{gud2013sof} our primary focus is to enable 
+the flexible communication between the eNBs of small cells and
+the backhaul of multiple operators. Additionally, SDCI does not require major changes
+to the hardwares of the existing infrastructure 
+reducing the transition and new deployment cost.  
+Virtualization of the Sm-GWs in the SDCI framework
+enables the slicing the Sm-GW resources providing operational
+independence to the software-defined applications of
+operators. The software defined orchestration enables the 
+connectivity, bandwidth, and QoS allocations based on the
+service level agreements (SLAs) with the cellular operators.  
+Software defined functionalities are required to dynamically 
+configure the backhaul resources. 
+For the purpose of an illustration, 
+consider a use case where a university has multiple buildings, each
+building could be equipped with hundreds of femto cells flexibly
+connected to an Sm-GW. Multiple Sm-GWs are then connected to the S-GWs
+and P-GWs of multiple cellular operators (LTE backhaul/core) via
+physical links (optical, microwave etc.). 
+A software defined orchestrator owned by the university 
+for cellular infrastructure management through Sm-GW along with the
+virtualization of Sm-GW resources can manage the cellular 
+infrastructure of the entire university. 
+The cellular network operators can
+deploy SDCI management-applications on the orchestrator to 
+coordinate the backhaul resources to dynamically 
+allocate and reconfigure the bandwidth 
+to each Sm-GW based on the requirement of each 
+sliced resource at the considered Sm-GW.
+Therefore, our proposed method would 
+achieve higher utilization of backhaul resources
+with two levels of resource management:
+$(i)$  from the Sm-GW towards the eNB, and
+$(ii)$ from the Sm-GW towards the S-GW.
+
+In summary, SDCI and virtualization serve two purposes, 1) Sm-GW
+resource splicing to simultaneously connect with multiple operators
+and, 2) dynamically allocate and reconfigure the network resources 
+at cellular operators core to each eNB.
+Present technologies for LTE deployments do not
+support such flexibilities. Through the use of SDN within
+our proposed technique we are able to
+address the backhaul bottleneck arising with large numbers of small cells.
+
+\section{Background}
+In this section we describe the current architectural model for
+Home eNodeB (HeNB) access networks \cite{HeNB3GPP} in 3GPP LTE
+and discuss the notable
+differences along with the benefits of our proposed architecture.
+HeNBs are the small cell (or the femto cell) base stations of LTE.
+
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[width=3.8in]{HeNBArchitecture.pdf}
+%	%\vspace{-1cm}
+%	\caption{HeNB architectural models in 3GPP LTE}
+%	\label{fig_HeNB}
+%\end{figure}
+
+\subsection{HeNB Architectural Models in 3GPP LTE}
+3GPP has proposed an optional deployment model of HeNB gateways
+(HeNB-GW) for
+small cells. In Figure \ref{fig_HeNB}
+we show the variants of 3GPP HeNB deployment scenarios:
+1) with dedicated HeNB-GW, 2) without HeNB-GW,
+and 3) with HeNB-GW for the control plane.
+
+\paragraph{To External Macro-eNBs}
+X2 traffic-flows destined to eNBs located outside the scope of an
+Sm-GW (typically
+to a macro-eNB) shall not be limited by the network protocol scheduler
+at the Sm-GW. X2 packets flow out of Sm-GW into the backhaul (i.e., to an
+S-GW) as they originate at the eNBs. The Sm-GW will appear as an
+external router (or gateway) for the X2 external interfaces (tunnels).
+
+\section{Conclusions}
+
+%\section{Conclusion}
+%The conclusion goes here.
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs23}
+
+\begin{IEEEbiography}{Ahmed Nasrallah}
+BLAH BLAH
+\end{IEEEbiography}
+
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{akhilesh.jpg}}]{Akhilesh Thyagaturu}
+\begin{IEEEbiography}{Akhilesh Thyagaturu}
+is currently pursuing his Ph.D. in Electrical Engineering at Arizona State University, Tempe. He received the M.S. degree in Electrical Engineering from Arizona State University, Tempe, in 2013. He received B.E degree from Visveswaraya Technological University (VTU), India, in 2010. He worked for Qualcomm Technologies Inc. San Diego, CA, as an Engineer between 2013 and 2015. 
+\end{IEEEbiography}
+
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{reissl.jpg}}]{Martin Reisslein}
+\begin{IEEEbiography}{Martin Reisslein}
+is a Professor in the School of Electrical, Computer, and Energy Engineering at Arizona State University, Tempe. He received the M.S.E. degree in electrical engineering from the University of Pennsylvania, Philadelphia, in 1996. He received his Ph.D. in systems engineering from the University of Pennsylvania in 1998.  Dr. Martin Reisslein has extensive experience in developing and evaluating network architectures and protocols for access networks. He has published over 120 journal articles and over 60 conference papers in the areas of multimedia networking over wired and wireless networks as well as access networks.  
+\end{IEEEbiography}
+
+\end{document}
+
+
