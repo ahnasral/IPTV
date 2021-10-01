@@ -22,6 +22,7 @@ def myNetwork():
                            ip='10.10.10.10',
                            protocol='tcp',
                            port=6634)
+//start topology building here
 
     info('*** Add switches\n')
     s1 = net.addSwitch('s1', cls=OVSKernelSwitch)
